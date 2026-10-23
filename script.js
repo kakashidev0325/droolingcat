@@ -1,14 +1,14 @@
 const CONFIG = {
-  tokenAddress: "9rzRfWAFzjkV7HMm36M1ZSh7JUf4S8pw6UeZdPdLpump",
+  tokenAddress: "",
   pumpFunUrl: "",
-  twitter: "https://x.com/trumponsol_x",
+  twitter: "https://x.com/droolingcat_x",
   telegram: "",
 };
 
 function getPumpFunUrl() {
   if (CONFIG.pumpFunUrl) return CONFIG.pumpFunUrl;
   if (CONFIG.tokenAddress) return `https://pump.fun/coin/${CONFIG.tokenAddress}`;
-  return "https://pump.fun";
+  return "";
 }
 
 function initContract() {
@@ -54,12 +54,14 @@ function initNav() {
   toggle.addEventListener("click", () => {
     const open = links.classList.toggle("open");
     toggle.setAttribute("aria-expanded", open);
+    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
   });
 
   links.querySelectorAll("a").forEach((a) => {
     a.addEventListener("click", () => {
       links.classList.remove("open");
       toggle.setAttribute("aria-expanded", "false");
+      toggle.setAttribute("aria-label", "Open menu");
     });
   });
 }
@@ -68,6 +70,13 @@ function initSocialLinks() {
   const pumpUrl = getPumpFunUrl();
 
   document.querySelectorAll("[data-pumpfun]").forEach((el) => {
+    if (!pumpUrl) {
+      el.href = "#contract";
+      el.removeAttribute("target");
+      if (el.classList.contains("btn-blood")) el.textContent = "CA soon";
+      return;
+    }
+
     el.href = pumpUrl;
   });
 
@@ -80,8 +89,33 @@ function initSocialLinks() {
   });
 }
 
+function initReveal() {
+  const nodes = document.querySelectorAll(".reveal");
+  if (!nodes.length) return;
+
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduce || !("IntersectionObserver" in window)) {
+    nodes.forEach((node) => node.classList.add("in"));
+    return;
+  }
+
+  const io = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("in");
+        io.unobserve(entry.target);
+      });
+    },
+    { threshold: 0.16, rootMargin: "0px 0px -8% 0px" }
+  );
+
+  nodes.forEach((node) => io.observe(node));
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initContract();
   initNav();
   initSocialLinks();
+  initReveal();
 });
